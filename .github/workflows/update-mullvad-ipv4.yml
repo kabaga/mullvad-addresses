@@ -19,14 +19,17 @@ jobs:
         jq '[.wireguard.relays[] | select(.ipv4_addr_in != null) | .ipv4_addr_in] | unique' > mullvad_ipv4.json
 
     - name: Commit and push if changed
+      env:
+        GH_PAT: ${{ secrets.GH_PAT }}
       run: |
         git config --local user.name "github-actions[bot]"
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git add mullvad_ipv4.json
         if ! git diff --cached --quiet; then
           git commit -m "Update Mullvad IPv4 list"
-          git push origin HEAD:main
+          git push https://x-access-token:${GH_PAT}@github.com/kabaga/mullvad-addresses.git HEAD:main
         else
           echo "No changes to commit"
         fi
+
 
