@@ -13,10 +13,15 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Fetch Mullvad IPv4 addresses and save JSON
+    - name: Fetch and generate IP lists
       run: |
+        # JSON format for URL Table (IPs)
         curl -sL https://api.mullvad.net/app/v1/relays | \
         jq '[.wireguard.relays[] | select(.ipv4_addr_in != null) | .ipv4_addr_in] | unique' > mullvad_ipv4.json
+
+        # Plain text format for URL (IPs)
+        curl -sL https://api.mullvad.net/app/v1/relays | \
+        jq -r '.wireguard.relays[] | select(.ipv4_addr_in != null) | .ipv4_addr_in' | sort -u > mullvad_ipv4.txt
 
     - name: Commit and push if changed
       env:
@@ -24,12 +29,10 @@ jobs:
       run: |
         git config --local user.name "github-actions[bot]"
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
-        git add mullvad_ipv4.json
+        git add mullvad_ipv4.json mullvad_ipv4.txt
         if ! git diff --cached --quiet; then
           git commit -m "Update Mullvad IPv4 list"
           git push https://x-access-token:${GH_PAT}@github.com/kabaga/mullvad-addresses.git HEAD:main
         else
           echo "No changes to commit"
         fi
-
-
