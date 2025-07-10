@@ -19,7 +19,7 @@ jobs:
           python-version: '3.x'
 
       - name: Run update script
-        run: python update_dns_list.py
+        run: python update_doh_doq_list.py
 
       - name: Commit and push changes
         run: |
